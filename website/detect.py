@@ -1,13 +1,10 @@
-# from website import create_app
-
-# app = create_app()
-
-# if __name__ == '__main__':
-#     app.run(debug=True,host='0.0.0.0',port=5000)
-from flask import Flask,render_template,Response
+from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for, Response
+from werkzeug.utils import secure_filename
 import cv2
+import os
 
-app=Flask(__name__)
+detect = Blueprint('detect', __name__)
+
 camera=cv2.VideoCapture(0)
 
 def generate_frames():
@@ -16,7 +13,7 @@ def generate_frames():
         ## read the camera frame
         success,frame=camera.read()
         if not success:
-            print("not")
+            print("not");
             break
         else:
             ret,buffer=cv2.imencode('.jpg',frame)
@@ -25,14 +22,10 @@ def generate_frames():
         yield(b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
+@detect.route('/detects', methods=['GET', 'POST'])
+def detects():
+    return render_template("views/detect.html")
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/video')
+@detect.route('/video')
 def video():
     return Response(generate_frames(),mimetype='multipart/x-mixed-replace; boundary=frame')
-
-if __name__=="__main__":
-    app.run(debug=True,host='0.0.0.0',port=5000)
